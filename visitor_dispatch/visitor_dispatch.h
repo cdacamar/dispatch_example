@@ -240,8 +240,8 @@ R match(const super_t& super, lambda_ts&&... fs) {
   return apply<R>(std::forward_as_tuple(super), make_overload(std::forward<lambda_ts>(fs)...));
 }
 
-template <typename R, typename super_t, typename... lambda_ts>
-R match(const super_t& lhs, const super_t& rhs, lambda_ts&&... fs) {
+template <typename R, typename super_lhs_t, typename super_rhs_t, typename... lambda_ts>
+R match(const super_lhs_t& lhs, const super_rhs_t& rhs, lambda_ts&&... fs) {
   return apply<R>(std::forward_as_tuple(lhs, rhs), make_overload(std::forward<lambda_ts>(fs)...));
 }
 
