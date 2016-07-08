@@ -91,13 +91,12 @@ template <typename... elm_ts,
           typename    R,
           typename... more_super_ts,
           typename... arg_elm_ts>
-  struct applier_t<
-          visitor_t<elm_ts...>,
-          F,
-          R,
-          std::tuple<const more_super_ts&...>,
-          std::tuple<const arg_elm_ts&...>
-  > : visitor_t<elm_ts...> {
+struct applier_t<
+        visitor_t<elm_ts...>,
+        F,
+        R,
+        std::tuple<const more_super_ts&...>,
+        std::tuple<const arg_elm_ts&...>> : visitor_t<elm_ts...> {
   F                                   f;
   R*                                  ret;
   std::tuple<const arg_elm_ts&...>    args;
@@ -119,20 +118,19 @@ template <typename... elm_ts,
           typename... arg_elm_ts,
           typename    this_elm_t,
           typename... more_elm_ts>
-  struct applier_t<
-          visitor_t<elm_ts...>,
-          F,
-          R,
-          std::tuple<more_super_ts...>,
-          std::tuple<arg_elm_ts...>,
-          this_elm_t,
-          more_elm_ts...
-  > : applier_t<visitor_t<elm_ts...>,
-                F,
-                R,
-                std::tuple<more_super_ts...>,
-                std::tuple<arg_elm_ts...>,
-                more_elm_ts...> {
+struct applier_t<
+        visitor_t<elm_ts...>,
+        F,
+        R,
+        std::tuple<more_super_ts...>,
+        std::tuple<arg_elm_ts...>,
+        this_elm_t,
+        more_elm_ts...> : applier_t<visitor_t<elm_ts...>,
+                                    F,
+                                    R,
+                                    std::tuple<more_super_ts...>,
+                                    std::tuple<arg_elm_ts...>,
+                                    more_elm_ts...> {
   using super_t = applier_t<visitor_t<elm_ts...>,
                             F,
                             R,
@@ -153,51 +151,51 @@ template <typename... elm_ts,
     dispatch(this->f, e, this->parents, this->args);
   }
 
-  private:
-    template <typename F_, typename elm_t_, typename... arg_elm_ts_>
-    void dispatch(      F_&&                               f,
-                  const elm_t_&                            e,
-                  const std::tuple<>&,
-                  const std::tuple<const arg_elm_ts_&...>& args) const {
-      make_overload(
-        [&](void*)     {        helpers::apply(f, std::tuple_cat(args, std::forward_as_tuple(e))); },
-        [&](auto* ret) { *ret = helpers::apply(f, std::tuple_cat(args, std::forward_as_tuple(e))); }
-      )(this->ret);
-    }
+private:
+  template <typename F_, typename elm_t_, typename... arg_elm_ts_>
+  void dispatch(      F_&&                               f,
+                const elm_t_&                            e,
+                const std::tuple<>&,
+                const std::tuple<const arg_elm_ts_&...>& args) const {
+    make_overload(
+      [&](void*)     {        helpers::apply(f, std::tuple_cat(args, std::forward_as_tuple(e))); },
+      [&](auto* ret) { *ret = helpers::apply(f, std::tuple_cat(args, std::forward_as_tuple(e))); }
+    )(this->ret);
+  }
 
-    template <typename    F_,
-              typename    elm_t_,
-              typename    super_t_,
-              typename... more_super_ts_,
-              typename... arg_elm_ts_,
-              typename... elm_ts_>
-      void apply(      F_&&                                                   f,
-                 const elm_t_&                                                e,
-                 const std::tuple<const super_t_&, const more_super_ts_&...>& parents,
-                 const std::tuple<const arg_elm_ts_&...>&                     args,
-                       visitor_tag_t<elm_ts_...>) const {
-      std::get<0>(parents).accept(
-        applier_t<
-          visitor_t<elm_ts_...>,
-          std::decay_t<F_>,
-          R,
-          std::tuple<const more_super_ts_&...>,
-          std::tuple<const arg_elm_ts_&..., const elm_t_&>,
-          elm_ts_...>{ std::forward<F_>(f), this->ret, helpers::tuple_pop_front(parents), std::tuple_cat(args, std::forward_as_tuple(e)) }
-      );
-    }
+  template <typename    F_,
+            typename    elm_t_,
+            typename    super_t_,
+            typename... more_super_ts_,
+            typename... arg_elm_ts_,
+            typename... elm_ts_>
+  void apply(      F_&&                                                   f,
+             const elm_t_&                                                e,
+             const std::tuple<const super_t_&, const more_super_ts_&...>& parents,
+             const std::tuple<const arg_elm_ts_&...>&                     args,
+                   visitor_tag_t<elm_ts_...>) const {
+    std::get<0>(parents).accept(
+      applier_t<
+        visitor_t<elm_ts_...>,
+        std::decay_t<F_>,
+        R,
+        std::tuple<const more_super_ts_&...>,
+        std::tuple<const arg_elm_ts_&..., const elm_t_&>,
+        elm_ts_...>{ std::forward<F_>(f), this->ret, helpers::tuple_pop_front(parents), std::tuple_cat(args, std::forward_as_tuple(e)) }
+    );
+  }
 
-    template <typename F_,
-              typename elm_t_,
-              typename super_t_,
-              typename... more_super_ts_,
-              typename... arg_elm_ts_>
-    void dispatch(      F_&&                                                   f,
-                  const elm_t_&                                                e,
-                  const std::tuple<const super_t_&, const more_super_ts_&...>& parents,
-                  const std::tuple<const arg_elm_ts_&...>&                     args) const {
-      apply(std::forward<F_>(f), e, parents, args, make_visitor_tag_t<typename super_t_::visitor_t>{});
-    }
+  template <typename F_,
+            typename elm_t_,
+            typename super_t_,
+            typename... more_super_ts_,
+            typename... arg_elm_ts_>
+  void dispatch(      F_&&                                                   f,
+                const elm_t_&                                                e,
+                const std::tuple<const super_t_&, const more_super_ts_&...>& parents,
+                const std::tuple<const arg_elm_ts_&...>&                     args) const {
+    apply(std::forward<F_>(f), e, parents, args, make_visitor_tag_t<typename super_t_::visitor_t>{});
+  }
 };
 
 template <typename T>
