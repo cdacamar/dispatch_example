@@ -72,7 +72,7 @@ auto make_overload(lambda_ts&&... ls) {
 }
 
 template <typename... elm_ts>
-struct visitor_tag_t { using visitor_t = visitor_t<elm_ts...>; };
+struct visitor_tag_t { using visitor_t = vdsp::visitor_t<elm_ts...>; };
 
 template <typename>
 struct make_visitor_tag;
